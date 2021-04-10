@@ -1,9 +1,12 @@
 """App that keeps track of a user's contacts"""
-import argparse
-import pathlib
-import sys
+#import argparse
+#import pathlib
+#import sys
+import sqlite3
 
-# TODO: Add sqlite3 functionality
+connection = sqlite3.connect("contacts.db")
+print(connection.total_changes)
+cursor = connection.cursor()
 
 
 class Contact:
@@ -14,7 +17,6 @@ class Contact:
         self.phone_number = ""
         self.business = ""
         self.address = ""
-
 
     def update_name(self, new_name):
         """Updates contact's name with new_name"""
@@ -34,8 +36,15 @@ class Contact:
         """
         print(info)
 
+
+# Temporary stuff for testing database
 george = Contact('George')
-george.print_contact()
-george.update_name('Jorge')
-george.add_phone_number('3106664208')
-george.print_contact()
+george.add_phone_number('911')
+try:
+    cursor.execute("CREATE TABLE contacts (name TEXT, phone_number TEXT)")
+except sqlite3.OperationalError as sqlite_error:
+    print(sqlite_error)
+cursor.execute("INSERT INTO contacts VALUES (?, ?)", (george.name,
+                                                      george.phone_number))
+rows = cursor.execute("SELECT name, phone_number FROM contacts").fetchall()
+print(f"Rows: {rows}")
