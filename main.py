@@ -2,6 +2,7 @@
 import argparse
 import sqlite3
 
+# Connect to database
 DATABASE = "test.db"
 CONNECTION = sqlite3.connect(DATABASE)
 CURSOR = CONNECTION.cursor()
@@ -10,30 +11,14 @@ CURSOR = CONNECTION.cursor()
 def setup_argparse():
     """Setup and parse arguments"""
     parser = argparse.ArgumentParser(
-        prog="CLI Contact Book",
         description="Create, edit, and remove contacts using the command line.",
     )
+    parser.add_argument("-a", action="store_true", help="Add a new contact",
+                        default=False)
+    parser.add_argument("-f", help="Find and display info about a contact")
+    parser.add_argument("-r", help="Remove a contact")
 
-    subparsers = parser.add_subparsers()
-
-    # Add contact
-    parser_add_contact = subparsers.add_parser("add", help="Add new contact")
-    parser_add_contact.set_defaults(func=create_contact)
-
-    # Update contact
-    parser_update_contact = subparsers.add_parser("update", help="Update contact")
-    parser_update_contact.set_defaults(func=update_contact)
-
-    # Remove contact
-    parser_remove_contact = subparsers.add_parser("remove", help="Remove contact")
-    parser_remove_contact.set_defaults(func=remove_contact)
-
-    # List contacts
-    parser_list_contacts = subparsers.add_parser("list", help="List contacts")
-    parser_list_contacts.set_defaults(func=list_all_contacts)
-
-    options = parser.parse_args()
-    options.func()
+    return parser.parse_args()
 
 
 def create_contact():
@@ -60,21 +45,22 @@ def remove_contact():
     """Remove an existing contact"""
     print('remove_contact running')
 
-def list_all_contacts():
+
+def find_contact(query):
     """Remove an existing contact"""
-    rows = CURSOR.execute("SELECT first_name, last_name, company, phone_number,"
-                          "email, address FROM contacts").fetchall()
-    for contact in rows:
-        print(f"\nFirst Name: {contact[0]}")
-        print(f"Last Name: {contact[1]}")
-        print(f"Company: {contact[2]}")
-        print(f"Phone Number: {contact[3]}")
-        print(f"Email: {contact[4]}")
-        print(f"Address: {contact[5]}")
+    found_contact = CURSOR.execute(
+        """SELECT first_name, last_name, company, phone_number, email, address
+        FROM contacts WHERE (first_name LIKE ? or last_name LIKE ?)""",
+        (query, query)).fetchall()
+
+    print(found_contact)
 
 
 if __name__ == "__main__":
-    try:
-        setup_argparse()
-    except AttributeError:
-        print("You must provide an argument ('add', 'update', 'remove', 'list')")
+    args = setup_argparse()
+
+    if args.a:
+        create_contact()
+    elif args.f:
+        print(args.f)
+        find_contact(args.f)
