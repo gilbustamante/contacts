@@ -1,50 +1,39 @@
 """App that keeps track of a user's contacts"""
-#import argparse
-#import pathlib
-#import sys
+import argparse
 import sqlite3
+from contact import Contact
 
-connection = sqlite3.connect("contacts.db")
-print(connection.total_changes)
-cursor = connection.cursor()
+DATABASE = "test.db"
+CONNECTION = sqlite3.connect(DATABASE)
+CURSOR = CONNECTION.cursor()
 
 
-class Contact:
-    """Represents a contact added by the user"""
+def setup_argparse():
+    """Setup and parse arguments"""
+    parser = argparse.ArgumentParser(
+        prog="CLI Contact Book",
+        description="Create, edit, and remove contacts using the command line",
+        usage="main.py [options] values"
+    )
 
-    def __init__(self, name):
-        self.name = name
-        self.phone_number = ""
-        self.business = ""
-        self.address = ""
-
-    def update_name(self, new_name):
-        """Updates contact's name with new_name"""
-        self.name = new_name
-        print(f"Updated name: {self.name}")
-
-    def add_phone_number(self, number):
-        """Adds a phone number to the contact"""
-        self.phone_number = number
-
-    def print_contact(self):
-        """Displays the contact's information"""
-        info = f"""
-        Contact Information
-        Name: {self.name}
-        Phone Number: {self.phone_number}
-        """
-        print(info)
-
+def create_contact():
+    """Guide user through creating a contact"""
+    print("Create Contact\nTip: press RETURN to skip field.")
+    first_name = input("First Name: ")
+    last_name = input("Last Name: ")
+    company = input("Company: ")
+    phone_number = input("Phone: ")
+    email = input("Email: ")
+    address = input("Address: ")
+    CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
+                   (first_name, last_name, company, phone_number, email,
+                    address))
+    CONNECTION.commit()
+    print("Contact created.")
 
 # Temporary stuff for testing database
-george = Contact('George')
-george.add_phone_number('911')
-try:
-    cursor.execute("CREATE TABLE contacts (name TEXT, phone_number TEXT)")
-except sqlite3.OperationalError as sqlite_error:
-    print(sqlite_error)
-cursor.execute("INSERT INTO contacts VALUES (?, ?)", (george.name,
-                                                      george.phone_number))
-rows = cursor.execute("SELECT name, phone_number FROM contacts").fetchall()
-print(f"Rows: {rows}")
+#rows = CURSOR.execute("SELECT name, phone_number FROM contacts").fetchall()
+#for contact in rows:
+#    print(contact)
+
+create_contact()
