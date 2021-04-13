@@ -47,13 +47,25 @@ def remove_contact():
 
 
 def find_contact(query):
-    """Remove an existing contact"""
+    """Find an existing contact"""
     found_contact = CURSOR.execute(
         """SELECT first_name, last_name, company, phone_number, email, address
         FROM contacts WHERE (first_name LIKE ? or last_name LIKE ?)""",
         (query, query)).fetchall()
+    return found_contact
 
-    print(found_contact)
+
+def print_contact(found_contact):
+    """Format and display contact information"""
+    # 'for' loop in case there is more than one contact returned
+    for person in found_contact:
+        print(f"""
+              Name: {person[0]} {person[1]}
+              Company: {person[2]}
+              Phone: {person[3]}
+              Email: {person[4]}
+              Address: {person[5]}
+              """)
 
 
 if __name__ == "__main__":
@@ -62,5 +74,5 @@ if __name__ == "__main__":
     if args.a:
         create_contact()
     elif args.f:
-        print(args.f)
-        find_contact(args.f)
+        contact = find_contact(args.f)
+        print_contact(contact)
