@@ -1,6 +1,7 @@
 """App that keeps track of a user's contacts"""
 import argparse
 import sqlite3
+import inspect
 
 # Connect to database
 DATABASE = "test.db"
@@ -33,7 +34,7 @@ def create_contact():
     CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
                    (first_name, last_name, company, phone_number, email, address))
     CONNECTION.commit()
-    print("Contact created.")
+    print(f"Contact {first_name} {last_name} created.")
 
 
 def update_contact():
@@ -41,10 +42,13 @@ def update_contact():
     print('update_contact running')
 
 
-def remove_contact():
+def remove_contact(query):
     """Remove an existing contact"""
-    print('remove_contact running')
-
+    f_name, l_name = query.split(" ")
+    CURSOR.execute("""DELETE FROM contacts WHERE
+                   (first_name = ? and last_name  = ?)""", (f_name, l_name))
+    CONNECTION.commit()
+    print("Removed contact")
 
 def find_contact(query):
     """Find an existing contact"""
@@ -59,13 +63,14 @@ def print_contact(found_contact):
     """Format and display contact information"""
     # 'for' loop in case there is more than one contact returned
     for person in found_contact:
-        print(f"""
-              Name: {person[0]} {person[1]}
-              Company: {person[2]}
-              Phone: {person[3]}
-              Email: {person[4]}
-              Address: {person[5]}
-              """)
+        print(inspect.cleandoc(f"""
+              Name    : {person[0]} {person[1]}
+              Company : {person[2]}
+              Phone   : {person[3]}
+              Email   : {person[4]}
+              Address : {person[5]}
+              --------------------------------
+              """))
 
 
 if __name__ == "__main__":
@@ -76,3 +81,5 @@ if __name__ == "__main__":
     elif args.f:
         contact = find_contact(args.f)
         print_contact(contact)
+    elif args.r:
+        remove_contact(args.r)
