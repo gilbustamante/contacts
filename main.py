@@ -8,7 +8,6 @@ DATABASE = "test.db"
 CONNECTION = sqlite3.connect(DATABASE)
 CURSOR = CONNECTION.cursor()
 
-
 def setup_argparse():
     """Setup and parse arguments"""
     parser = argparse.ArgumentParser(
@@ -17,7 +16,9 @@ def setup_argparse():
     parser.add_argument("-a", action="store_true", help="Add a new contact",
                         default=False)
     parser.add_argument("-f", help="Find and display info about a contact")
-    parser.add_argument("-r", help="Remove a contact")
+    parser.add_argument("-u", help="Update a contact's information")
+    parser.add_argument("-r", help="Remove a contact (must use full name in"
+                        " quotes")
 
     return parser.parse_args()
 
@@ -37,10 +38,13 @@ def create_contact():
     print(f"Contact {first_name} {last_name} created.")
 
 
-def update_contact():
+def update_contact(query):
     """Update an existing contact"""
-    print('update_contact running')
-
+    found_cursor = CURSOR.execute(
+        """SELECT first_name, last_name, company, phone_number, email, address
+        FROM contacts WHERE (first_name = ? and last_name = ?)""",
+        (query, query))
+    return found_cursor
 
 def remove_contact(query):
     """Remove an existing contact"""
@@ -83,3 +87,6 @@ if __name__ == "__main__":
         print_contact(contact)
     elif args.r:
         remove_contact(args.r)
+    elif args.u:
+        contact = update_contact(args.u)
+        print_contact(contact)
