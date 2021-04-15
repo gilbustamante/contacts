@@ -17,7 +17,8 @@ def setup_argparse():
     )
     parser.add_argument("-a", action="store_true", help="Add a new contact",
                         default=False)
-    parser.add_argument("-f", help="Find and display info about a contact")
+    parser.add_argument("-f", action="store_true", help="Find and display info"
+                        " about a contact", default=False)
     parser.add_argument("-u", action="store_true", help="Update a contact's"
                         " information", default=False)
     parser.add_argument("-r", help="Remove a contact (must use full name in"
@@ -102,12 +103,27 @@ def remove_contact(query):
     print("Removed contact")
 
 
-def find_contact(query):
+def find_contact():
     """Find an existing contact"""
+    all_contacts = []
+    # Fetch all contacts
+    contacts_from_db = CURSOR.execute("""SELECT first_name, last_name FROM
+                                  contacts""").fetchall()
+    # Looping to convert tuples to strings (for inquirer display)
+    for contact_name in contacts_from_db:
+        all_contacts.append(f"{contact_name[0]} {contact_name[1]}")
+    # Inquirer setup
+    questions = [
+        inquirer.List("contact",
+                      message="View a contact's details",
+                      choices=all_contacts)
+    ]
+    answer = inquirer.prompt(questions)
+    name = answer["contact"].split(" ")
     found_contact = CURSOR.execute(
         """SELECT first_name, last_name, company, phone_number, email, address
-        FROM contacts WHERE (first_name LIKE ? or last_name LIKE ?)""",
-        (query, query)).fetchall()
+        FROM contacts WHERE (first_name = ? or last_name = ?)""",
+        (name[0], name[1]))
     return found_contact
 
 
@@ -131,7 +147,7 @@ if __name__ == "__main__":
     if args.a:
         create_contact()
     elif args.f:
-        contact = find_contact(args.f)
+        contact = find_contact()
         print_contact(contact)
     elif args.r:
         remove_contact(args.r)
