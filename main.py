@@ -29,20 +29,22 @@ def setup_argparse():
 def create_contact():
     """Guide user through creating a contact"""
     print("Create Contact\nTip: press RETURN to skip field.")
-    first_name = input("First Name: ")
-    last_name = input("Last Name: ")
-    company = input("Company: ")
-    phone_number = input("Phone: ")
-    email = input("Email: ")
-    address = input("Address: ")
+    questions = [
+        inquirer.Text("first", message="First Name"),
+        inquirer.Text("last", message="Last Name"),
+        inquirer.Text("company", message="Company"),
+        inquirer.Text("phone", message="Phone"),
+        inquirer.Text("email", message="Email"),
+        inquirer.Text("address", message="Address"),
+    ]
+    answers = inquirer.prompt(questions)
     CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
-                   (first_name, last_name, company, phone_number, email, address))
+                   (answers["first"], answers["last"], answers["company"],
+                    answers["phone"], answers["email"], answers["address"]))
     CONNECTION.commit()
-    print(f"Contact {first_name} {last_name} created.")
+    print(f"Contact {answers['first']} {answers['last']} created.")
 
 # TODO: REFACTOR THIS FUNCTION!
-
-
 def update_contact():
     """Update an existing contact"""
     all_contacts = []
