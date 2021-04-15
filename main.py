@@ -2,11 +2,13 @@
 import argparse
 import sqlite3
 import inspect
+import inquirer
 
 # Connect to database
 DATABASE = "test.db"
 CONNECTION = sqlite3.connect(DATABASE)
 CURSOR = CONNECTION.cursor()
+
 
 def setup_argparse():
     """Setup and parse arguments"""
@@ -16,7 +18,8 @@ def setup_argparse():
     parser.add_argument("-a", action="store_true", help="Add a new contact",
                         default=False)
     parser.add_argument("-f", help="Find and display info about a contact")
-    parser.add_argument("-u", help="Update a contact's information")
+    parser.add_argument("-u", action="store_true", help="Update a contact's"
+                        " information", default=False)
     parser.add_argument("-r", help="Remove a contact (must use full name in"
                         " quotes")
 
@@ -38,21 +41,45 @@ def create_contact():
     print(f"Contact {first_name} {last_name} created.")
 
 
-def update_contact(query):
+def update_contact():
     """Update an existing contact"""
-    found_cursor = CURSOR.execute(
+    all_contacts = []
+    # Fetch all contacts
+    contacts_from_db = CURSOR.execute("""SELECT first_name, last_name FROM
+                                  contacts""").fetchall()
+    # Looping to convert tuples to strings (for inquirer display)
+    for name in contacts_from_db:
+        all_contacts.append(f"{name[0]} {name[1]}")
+    # Inquirer setup
+    questions = [
+        inquirer.List("contact",
+                      message="Who do you want to update?",
+                      choices=all_contacts)
+    ]
+    answer = inquirer.prompt(questions)
+    f_name, l_name = " ".split(answer)
+    # Find contact
+    found_contact = CURSOR.execute(
         """SELECT first_name, last_name, company, phone_number, email, address
-        FROM contacts WHERE (first_name = ? and last_name = ?)""",
-        (query, query))
+        FROM contacts WHERE (first_name LIKE ? or last_name LIKE ?)""",
+        (f_name, l_name))
+    # Update contact
+    found_cursor = CURSOR.execute(
+        """UPDATE contacts SET first_name = ?, last_name = ?, company = ?,
+        phone_number = ?, email = ?, address = ? WHERE first_name = ? and
+        last_name = ?)""", first_name, last_name, company, phone_number, email,
+        address, f_name, l_name)
     return found_cursor
+
 
 def remove_contact(query):
     """Remove an existing contact"""
-    f_name, l_name = query.split(" ")
+    f_name, l_name = " ".split(query)
     CURSOR.execute("""DELETE FROM contacts WHERE
                    (first_name = ? and last_name  = ?)""", (f_name, l_name))
     CONNECTION.commit()
     print("Removed contact")
+
 
 def find_contact(query):
     """Find an existing contact"""
@@ -88,5 +115,4 @@ if __name__ == "__main__":
     elif args.r:
         remove_contact(args.r)
     elif args.u:
-        contact = update_contact(args.u)
-        print_contact(contact)
+        update_contact()
