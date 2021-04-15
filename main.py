@@ -40,6 +40,8 @@ def create_contact():
     CONNECTION.commit()
     print(f"Contact {first_name} {last_name} created.")
 
+# TODO: REFACTOR THIS FUNCTION!
+
 
 def update_contact():
     """Update an existing contact"""
@@ -57,19 +59,36 @@ def update_contact():
                       choices=all_contacts)
     ]
     answer = inquirer.prompt(questions)
-    f_name, l_name = " ".split(answer)
+    name = answer["contact"].split(" ")
     # Find contact
     found_contact = CURSOR.execute(
         """SELECT first_name, last_name, company, phone_number, email, address
-        FROM contacts WHERE (first_name LIKE ? or last_name LIKE ?)""",
-        (f_name, l_name))
+        FROM contacts WHERE (first_name = ? and last_name = ?)""",
+        (name[0], name[1]))
+    print(found_contact)
+    for person in found_contact:
+        update_questions = [
+            inquirer.Text("first", message="First Name", default=person[0]),
+            inquirer.Text("last", message="Last Name", default=person[1]),
+            inquirer.Text("company", message="Company", default=person[2]),
+            inquirer.Text("phone", message="Phone", default=person[3]),
+            inquirer.Text("email", message="Email", default=person[4]),
+            inquirer.Text("address", message="Address", default=person[5]),
+        ]
+        update_answers = inquirer.prompt(update_questions)
     # Update contact
-    found_cursor = CURSOR.execute(
-        """UPDATE contacts SET first_name = ?, last_name = ?, company = ?,
-        phone_number = ?, email = ?, address = ? WHERE first_name = ? and
-        last_name = ?)""", first_name, last_name, company, phone_number, email,
-        address, f_name, l_name)
-    return found_cursor
+    CURSOR.execute(
+        """UPDATE contacts SET first_name = ?, last_name = ?,
+        company = ?, phone_number = ?, email = ?, address = ? WHERE
+        (first_name = ? and last_name = ?)""", (update_answers["first"],
+                                                update_answers["last"],
+                                                update_answers["company"],
+                                                update_answers["phone"],
+                                                update_answers["email"],
+                                                update_answers["address"],
+                                                name[0], name[1]))
+    CONNECTION.commit()
+    print(f"Contact {name[0] + name[1]} updated")
 
 
 def remove_contact(query):
