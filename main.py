@@ -3,7 +3,7 @@ import argparse
 import sqlite3
 import inspect
 import inquirer
-from helpers import get_update_answers
+from helpers import get_update_answers, select_contact
 
 # Connect to database
 DATABASE = "test.db"
@@ -24,7 +24,6 @@ def setup_argparse():
                         " information", default=False)
     parser.add_argument("-r", help="Remove a contact (must use full name in"
                         " quotes")
-
     return parser.parse_args()
 
 
@@ -46,34 +45,11 @@ def create_contact():
     CONNECTION.commit()
     print(f"Contact {answers['first']} {answers['last']} created.")
 
-# TODO: REFACTOR THIS FUNCTION!
+
 def update_contact():
     """Update an existing contact"""
-    all_contacts = []
-
-    # Fetch all contacts
-    contacts_from_db = CURSOR.execute("""SELECT first_name, last_name FROM
-                                  contacts""").fetchall()
-    # Looping to convert tuples to strings (for inquirer display)
-    for contact_name in contacts_from_db:
-        all_contacts.append(f"{contact_name[0]} {contact_name[1]}")
-
-    # Inquirer setup
-    questions = [
-        inquirer.List("contact",
-                      message="Who do you want to update?",
-                      choices=all_contacts)
-    ]
-    answer = inquirer.prompt(questions)
-
-    # Splitting contact's name into list of 'first' and 'last'
-    name = answer["contact"].split(" ")
-
-    # Find contact
-    found_contact = CURSOR.execute(
-        """SELECT first_name, last_name, company, phone_number, email, address
-        FROM contacts WHERE (first_name = ? and last_name = ?)""",
-        (name[0], name[1]))
+    found_contact = select_contact(CURSOR)
+    f_name, l_name = found_contact[0], found_contact[1]
     update_answers = get_update_answers(found_contact)
 
     # Update contact
@@ -86,9 +62,11 @@ def update_contact():
                                                 update_answers["phone"],
                                                 update_answers["email"],
                                                 update_answers["address"],
-                                                name[0], name[1]))
+                                                f_name, l_name))
+
     CONNECTION.commit()
-    print(f"Contact {name[0] + name[1]} updated")
+    print(f"Contact {update_answers['first']} {update_answers['last']} "
+          "updated")
 
 
 def remove_contact(query):
@@ -100,42 +78,16 @@ def remove_contact(query):
     print("Removed contact")
 
 
-def find_contact():
-    """Find an existing contact"""
-    all_contacts = []
-    # Fetch all contacts
-    contacts_from_db = CURSOR.execute("""SELECT first_name, last_name FROM
-                                  contacts""").fetchall()
-    # Looping to convert tuples to strings (for inquirer display)
-    for contact_name in contacts_from_db:
-        all_contacts.append(f"{contact_name[0]} {contact_name[1]}")
-    # Inquirer setup
-    questions = [
-        inquirer.List("contact",
-                      message="View a contact's details",
-                      choices=all_contacts)
-    ]
-    answer = inquirer.prompt(questions)
-    name = answer["contact"].split(" ")
-    found_contact = CURSOR.execute(
-        """SELECT first_name, last_name, company, phone_number, email, address
-        FROM contacts WHERE (first_name = ? or last_name = ?)""",
-        (name[0], name[1]))
-    return found_contact
-
-
-def print_contact(found_contact):
+def print_contact(person):
     """Format and display contact information"""
-    # 'for' loop in case there is more than one contact returned
-    for person in found_contact:
-        print(inspect.cleandoc(f"""
-              Name    : {person[0]} {person[1]}
-              Company : {person[2]}
-              Phone   : {person[3]}
-              Email   : {person[4]}
-              Address : {person[5]}
-              --------------------------------
-              """))
+    print(inspect.cleandoc(f"""
+          Name    : {person[0]} {person[1]}
+          Company : {person[2]}
+          Phone   : {person[3]}
+          Email   : {person[4]}
+          Address : {person[5]}
+          --------------------------------
+          """))
 
 
 if __name__ == "__main__":
@@ -144,7 +96,7 @@ if __name__ == "__main__":
     if args.a:
         create_contact()
     elif args.f:
-        contact = find_contact()
+        contact = select_contact(CURSOR)
         print_contact(contact)
     elif args.r:
         remove_contact(args.r)
