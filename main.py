@@ -6,8 +6,6 @@ import inspect
 import inquirer
 from helpers import get_update_answers, select_contact
 
-# TODO: validate phone numbers, emails
-
 # Connect to database
 DATABASE = "contacts.db"
 CONNECTION = sqlite3.connect(DATABASE)
