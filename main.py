@@ -6,6 +6,8 @@ import inspect
 import inquirer
 from helpers import get_update_answers, select_contact
 
+# TODO: validate phone numbers, emails
+
 # Connect to database
 DATABASE = "contacts.db"
 CONNECTION = sqlite3.connect(DATABASE)
@@ -55,6 +57,11 @@ def create_contact():
     # Get user input
     answers = inquirer.prompt(questions)
 
+    # If contact has no name, prompt user to enter again
+    while not answers["first"] and not answers["last"]:
+        print("Contact's name cannot be empty")
+        answers = inquirer.prompt(questions)
+
     # Create contact
     CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
                    (answers["first"], answers["last"], answers["company"],
@@ -100,13 +107,16 @@ def remove_contact():
 def print_contact(person):
     """Format and display contact information"""
     # cleandoc to remove unnecessary spaces from string
-    print(inspect.cleandoc(f"""
-          Name    : {person[0]} {person[1]}
-          Company : {person[2]}
-          Phone   : {person[3]}
-          Email   : {person[4]}
-          Address : {person[5]}
-          """))
+    try:
+        print(inspect.cleandoc(f"""
+              Name    : {person[0]} {person[1]}
+              Company : {person[2]}
+              Phone   : {person[3]}
+              Email   : {person[4]}
+              Address : {person[5]}
+              """))
+    except TypeError as print_err:
+        print(f"Cannot display contact: {print_err}")
 
 
 if __name__ == "__main__":

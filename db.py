@@ -2,7 +2,7 @@
 
 import sqlite3
 
-CONNECTION = sqlite3.connect("test.db")
+CONNECTION = sqlite3.connect("contacts.db")
 CURSOR = CONNECTION.cursor()
 CURSOR.execute("""CREATE TABLE contacts (
     first_name TEXT,
@@ -12,3 +12,5 @@ CURSOR.execute("""CREATE TABLE contacts (
     email TEXT,
     address TEXT
 )""")
+
+print("Database initialized")

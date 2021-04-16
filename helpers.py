@@ -10,13 +10,18 @@ def select_contact(cursor_object):
     # Convert name tuples to strings (for inquirer display)
     for contact in contacts_object:
         all_contacts.append(f"{contact[0]} {contact[1]}")
+
     # Inquirer
     questions = [
         inquirer.List("contact",
                       message="Select a contact",
                       choices=all_contacts)
     ]
-    answer = inquirer.prompt(questions)
+    try:
+        answer = inquirer.prompt(questions)
+    except IndexError as index_err:
+        print(f"There are no contacts in the database ({index_err})")
+        return
     first_and_last_name = answer["contact"].split(" ")
     # Find and return contact object
     found_contact = cursor_object.execute(
@@ -25,7 +30,6 @@ def select_contact(cursor_object):
         (first_and_last_name[0], first_and_last_name[1]))
     for person in found_contact:
         return person
-    #return found_contact
 
 
 def get_update_answers(person):
