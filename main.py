@@ -3,6 +3,7 @@ import argparse
 import sqlite3
 import inspect
 import inquirer
+from helpers import get_update_answers
 
 # Connect to database
 DATABASE = "test.db"
@@ -49,12 +50,14 @@ def create_contact():
 def update_contact():
     """Update an existing contact"""
     all_contacts = []
+
     # Fetch all contacts
     contacts_from_db = CURSOR.execute("""SELECT first_name, last_name FROM
                                   contacts""").fetchall()
     # Looping to convert tuples to strings (for inquirer display)
-    for name in contacts_from_db:
-        all_contacts.append(f"{name[0]} {name[1]}")
+    for contact_name in contacts_from_db:
+        all_contacts.append(f"{contact_name[0]} {contact_name[1]}")
+
     # Inquirer setup
     questions = [
         inquirer.List("contact",
@@ -62,23 +65,17 @@ def update_contact():
                       choices=all_contacts)
     ]
     answer = inquirer.prompt(questions)
+
+    # Splitting contact's name into list of 'first' and 'last'
     name = answer["contact"].split(" ")
+
     # Find contact
     found_contact = CURSOR.execute(
         """SELECT first_name, last_name, company, phone_number, email, address
         FROM contacts WHERE (first_name = ? and last_name = ?)""",
         (name[0], name[1]))
-    print(found_contact)
-    for person in found_contact:
-        update_questions = [
-            inquirer.Text("first", message="First Name", default=person[0]),
-            inquirer.Text("last", message="Last Name", default=person[1]),
-            inquirer.Text("company", message="Company", default=person[2]),
-            inquirer.Text("phone", message="Phone", default=person[3]),
-            inquirer.Text("email", message="Email", default=person[4]),
-            inquirer.Text("address", message="Address", default=person[5]),
-        ]
-        update_answers = inquirer.prompt(update_questions)
+    update_answers = get_update_answers(found_contact)
+
     # Update contact
     CURSOR.execute(
         """UPDATE contacts SET first_name = ?, last_name = ?,
