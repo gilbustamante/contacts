@@ -1,12 +1,13 @@
 """App that keeps track of a user's contacts"""
 import argparse
 import sqlite3
+import sys
 import inspect
 import inquirer
 from helpers import get_update_answers, select_contact
 
 # Connect to database
-DATABASE = "test.db"
+DATABASE = "contacts.db"
 CONNECTION = sqlite3.connect(DATABASE)
 CURSOR = CONNECTION.cursor()
 
@@ -32,6 +33,11 @@ def setup_argparse():
                         help="Remove a contact",
                         action="store_true",
                         default=False)
+
+    # If no args provided, print help
+    if len(sys.argv) == 1:
+        parser.print_help()
+
     return parser.parse_args()
 
 
@@ -46,7 +52,10 @@ def create_contact():
         inquirer.Text("email", message="Email"),
         inquirer.Text("address", message="Address"),
     ]
+    # Get user input
     answers = inquirer.prompt(questions)
+
+    # Create contact
     CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
                    (answers["first"], answers["last"], answers["company"],
                     answers["phone"], answers["email"], answers["address"]))
@@ -56,6 +65,7 @@ def create_contact():
 
 def update_contact():
     """Update an existing contact"""
+    # Select contact, format name for sqlite query
     found_contact = select_contact(CURSOR)
     f_name, l_name = found_contact[0], found_contact[1]
     update_answers = get_update_answers(found_contact)
@@ -89,6 +99,7 @@ def remove_contact():
 
 def print_contact(person):
     """Format and display contact information"""
+    # cleandoc to remove unnecessary spaces from string
     print(inspect.cleandoc(f"""
           Name    : {person[0]} {person[1]}
           Company : {person[2]}
