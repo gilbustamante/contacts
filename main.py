@@ -16,14 +16,22 @@ def setup_argparse():
     parser = argparse.ArgumentParser(
         description="Create, edit, and remove contacts using the command line.",
     )
-    parser.add_argument("-a", action="store_true", help="Add a new contact",
+    parser.add_argument("-a",
+                        help="Add a new contact",
+                        action="store_true",
                         default=False)
-    parser.add_argument("-f", action="store_true", help="Find and display info"
-                        " about a contact", default=False)
-    parser.add_argument("-u", action="store_true", help="Update a contact's"
-                        " information", default=False)
-    parser.add_argument("-r", help="Remove a contact (must use full name in"
-                        " quotes")
+    parser.add_argument("-f",
+                        help="Find and display info about a contact",
+                        action="store_true",
+                        default=False)
+    parser.add_argument("-u",
+                        help="Update a contact's information",
+                        action="store_true",
+                        default=False)
+    parser.add_argument("-r",
+                        help="Remove a contact",
+                        action="store_true",
+                        default=False)
     return parser.parse_args()
 
 
@@ -69,9 +77,10 @@ def update_contact():
           "updated")
 
 
-def remove_contact(query):
+def remove_contact():
     """Remove an existing contact"""
-    f_name, l_name = " ".split(query)
+    contact_to_remove = select_contact(CURSOR)
+    f_name, l_name = contact_to_remove[0], contact_to_remove[1]
     CURSOR.execute("""DELETE FROM contacts WHERE
                    (first_name = ? and last_name  = ?)""", (f_name, l_name))
     CONNECTION.commit()
@@ -86,7 +95,6 @@ def print_contact(person):
           Phone   : {person[3]}
           Email   : {person[4]}
           Address : {person[5]}
-          --------------------------------
           """))
 
 
@@ -99,6 +107,6 @@ if __name__ == "__main__":
         contact = select_contact(CURSOR)
         print_contact(contact)
     elif args.r:
-        remove_contact(args.r)
+        remove_contact()
     elif args.u:
         update_contact()
