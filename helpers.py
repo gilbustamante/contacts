@@ -21,12 +21,12 @@ def select_contact(cursor_object):
         answer = inquirer.prompt(questions)
     except IndexError as index_err:
         print(f"There are no contacts in the database ({index_err})")
-        return
+        return 1
     first_and_last_name = answer["contact"].split(" ")
     # Find and return contact object
     found_contact = cursor_object.execute(
-        """SELECT first_name, last_name, company, phone_number, email, address
-        FROM contacts WHERE (first_name = ? or last_name = ?)""",
+        """SELECT first_name, last_name, company, phone_number, email, address,
+        notes FROM contacts WHERE (first_name = ? or last_name = ?)""",
         (first_and_last_name[0], first_and_last_name[1]))
     for person in found_contact:
         return person
@@ -41,6 +41,7 @@ def get_update_answers(person):
         inquirer.Text("phone", message="Phone", default=person[3]),
         inquirer.Text("email", message="Email", default=person[4]),
         inquirer.Text("address", message="Address", default=person[5]),
+        inquirer.Text("notes", message="Notes", default=person[6]),
     ]
     answers = inquirer.prompt(update_questions)
     return answers

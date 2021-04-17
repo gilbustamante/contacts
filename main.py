@@ -51,6 +51,7 @@ def create_contact():
         inquirer.Text("phone", message="Phone"),
         inquirer.Text("email", message="Email"),
         inquirer.Text("address", message="Address"),
+        inquirer.Text("notes", message="Notes"),
     ]
     # Get user input
     answers = inquirer.prompt(questions)
@@ -62,9 +63,10 @@ def create_contact():
 
     # Create contact
     try:
-        CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
+        CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?, ?)",
                        (answers["first"], answers["last"], answers["company"],
-                        answers["phone"], answers["email"], answers["address"]))
+                        answers["phone"], answers["email"],
+                        answers["address"], answers["notes"]))
     except sqlite3.OperationalError as op_err:
         print(f"Error: {op_err}\nUse the command 'python db.py' to create a "
               "database")
@@ -83,14 +85,15 @@ def update_contact():
     # Update contact
     CURSOR.execute(
         """UPDATE contacts SET first_name = ?, last_name = ?,
-        company = ?, phone_number = ?, email = ?, address = ? WHERE
-        (first_name = ? and last_name = ?)""", (update_answers["first"],
-                                                update_answers["last"],
-                                                update_answers["company"],
-                                                update_answers["phone"],
-                                                update_answers["email"],
-                                                update_answers["address"],
-                                                f_name, l_name))
+        company = ?, phone_number = ?, email = ?, address = ?, notes = ?
+        WHERE (first_name = ? and last_name = ?)""", (update_answers["first"],
+                                                      update_answers["last"],
+                                                      update_answers["company"],
+                                                      update_answers["phone"],
+                                                      update_answers["email"],
+                                                      update_answers["address"],
+                                                      update_answers["notes"],
+                                                      f_name, l_name))
 
     CONNECTION.commit()
     print(f"Contact {update_answers['first']} {update_answers['last']} "
@@ -117,6 +120,7 @@ def print_contact(person):
               Phone   : {person[3]}
               Email   : {person[4]}
               Address : {person[5]}
+              Notes   : {person[6]}
               """))
     except TypeError as print_err:
         print(f"Cannot display contact: {print_err}")
