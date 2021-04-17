@@ -4,7 +4,7 @@ import sqlite3
 import sys
 import inspect
 import inquirer
-from helpers import get_update_answers, select_contact
+from helpers import get_update_answers, select_contact, phone_validation
 
 # Connect to database
 DATABASE = "contacts.db"
@@ -48,7 +48,7 @@ def create_contact():
         inquirer.Text("first", message="First Name"),
         inquirer.Text("last", message="Last Name"),
         inquirer.Text("company", message="Company"),
-        inquirer.Text("phone", message="Phone"),
+        inquirer.Text("phone", message="Phone", validate=phone_validation),
         inquirer.Text("email", message="Email"),
         inquirer.Text("address", message="Address"),
         inquirer.Text("notes", message="Notes"),

@@ -22,7 +22,7 @@ python main.py [option]
 | `-u`   | Update a contact's info.           |
 | `-f`   | Find and display a contact's info. |
 | `-r`   | Remove a contact.                  |
-| `-h`   | Display help                       |
+| `-h`   | Display help.                      |
 
 ## To Do
 * Validate phone number and email entry

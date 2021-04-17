@@ -1,4 +1,7 @@
+"""Helper functions for main.py"""
+import re
 import inquirer
+from inquirer import errors
 
 
 def select_contact(cursor_object):
@@ -38,10 +41,17 @@ def get_update_answers(person):
         inquirer.Text("first", message="First Name", default=person[0]),
         inquirer.Text("last", message="Last Name", default=person[1]),
         inquirer.Text("company", message="Company", default=person[2]),
-        inquirer.Text("phone", message="Phone", default=person[3]),
+        inquirer.Text("phone", message="Phone", default=person[3],
+                      validate=phone_validation),
         inquirer.Text("email", message="Email", default=person[4]),
         inquirer.Text("address", message="Address", default=person[5]),
         inquirer.Text("notes", message="Notes", default=person[6]),
     ]
     answers = inquirer.prompt(update_questions)
     return answers
+
+def phone_validation(answer, current):
+    """Validate entered phone numbers"""
+    if not re.match("[\d+]?[\d ]+\d", current):
+        raise errors.ValidationError("", reason="Invalid phone number")
+    return True
