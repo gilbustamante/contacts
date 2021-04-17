@@ -8,6 +8,11 @@ pip install inquirer
 ```
 
 ## Usage
+First initialize a database:
+```
+python db.py
+```
+Then use the following syntax to add/view/remove contacts:
 ```
 python main.py [option]
 ```
@@ -21,4 +26,4 @@ python main.py [option]
 
 ## To Do
 * Validate phone number and email entry
-* Additional fields if needed (notes?)
+* Additional fields if needed

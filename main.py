@@ -17,20 +17,20 @@ def setup_argparse():
     parser = argparse.ArgumentParser(
         description="Create, edit, and remove contacts using the command line.",
     )
-    parser.add_argument("-a",
-                        help="Add a new contact",
+    parser.add_argument("-a", "-add",
+                        help="add a new contact",
                         action="store_true",
                         default=False)
-    parser.add_argument("-f",
-                        help="Find and display info about a contact",
+    parser.add_argument("-f", "-find",
+                        help="find and display info about a contact",
                         action="store_true",
                         default=False)
-    parser.add_argument("-u",
-                        help="Update a contact's information",
+    parser.add_argument("-u", "-update",
+                        help="update a contact's information",
                         action="store_true",
                         default=False)
-    parser.add_argument("-r",
-                        help="Remove a contact",
+    parser.add_argument("-r", "-remove",
+                        help="remove a contact",
                         action="store_true",
                         default=False)
 
@@ -61,9 +61,14 @@ def create_contact():
         answers = inquirer.prompt(questions)
 
     # Create contact
-    CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
-                   (answers["first"], answers["last"], answers["company"],
-                    answers["phone"], answers["email"], answers["address"]))
+    try:
+        CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?)",
+                       (answers["first"], answers["last"], answers["company"],
+                        answers["phone"], answers["email"], answers["address"]))
+    except sqlite3.OperationalError as op_err:
+        print(f"Error: {op_err}\nUse the command 'python db.py' to create a "
+              "database")
+        return
     CONNECTION.commit()
     print(f"Contact {answers['first']} {answers['last']} created.")
 

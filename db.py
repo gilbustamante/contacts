@@ -10,7 +10,8 @@ CURSOR.execute("""CREATE TABLE contacts (
     company TEXT,
     phone_number TEXT,
     email TEXT,
-    address TEXT
+    address TEXT,
+    notes TEXT
 )""")
 
 print("Database initialized")
