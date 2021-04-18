@@ -25,5 +25,5 @@ python main.py [option]
 | `-h`   | Display help.                      |
 
 ## To Do
-* Validate phone number and email entry
+* ~~Validate phone number and email entry~~
 * Additional fields if needed
