@@ -9,7 +9,7 @@ def select_contact(cursor_object):
     all_contacts = []
     # Fetch all contacts
     contacts_object = cursor_object.execute("""SELECT first_name, last_name FROM
-                                  contacts""").fetchall()
+                                            contacts""").fetchall()
     # If contacts db is empty, return
     if contacts_object == []:
         print("There are no contacts in the database.\n"
@@ -19,7 +19,6 @@ def select_contact(cursor_object):
     # Convert name tuples to strings (for inquirer display)
     for contact in contacts_object:
         all_contacts.append(f"{contact[0]} {contact[1]}")
-
 
     # Inquirer
     questions = [
@@ -55,14 +54,22 @@ def get_update_answers(person):
     answers = inquirer.prompt(update_questions)
     return answers
 
+
 def phone_validation(_, current):
     """Validate entered phone numbers"""
+    # If user leaves is blank, ignore
+    if current == "":
+        return True
     if not re.match(r"[\d+]?[\d ]+\d", current):
         raise errors.ValidationError("", reason="Invalid phone number")
     return True
 
+
 def email_validation(_, current):
     """Validate entered emails"""
+    # If user leaves is blank, ignore
+    if current == "":
+        return True
     if not re.match(r"^[\w\d.-]+@[\w\d]+\.+[\w]+[\.\w]*", current):
         raise errors.ValidationError("", reason="Invalid email")
     return True
