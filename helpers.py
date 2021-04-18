@@ -10,9 +10,16 @@ def select_contact(cursor_object):
     # Fetch all contacts
     contacts_object = cursor_object.execute("""SELECT first_name, last_name FROM
                                   contacts""").fetchall()
+    # If contacts db is empty, return
+    if contacts_object == []:
+        print("There are no contacts in the database.\n"
+              "Add a contact with command 'python main.py -a'")
+        return None
+
     # Convert name tuples to strings (for inquirer display)
     for contact in contacts_object:
         all_contacts.append(f"{contact[0]} {contact[1]}")
+
 
     # Inquirer
     questions = [
@@ -20,11 +27,8 @@ def select_contact(cursor_object):
                       message="Select a contact",
                       choices=all_contacts)
     ]
-    try:
-        answer = inquirer.prompt(questions)
-    except IndexError as index_err:
-        print(f"There are no contacts in the database ({index_err})")
-        return 1
+
+    answer = inquirer.prompt(questions)
     first_and_last_name = answer["contact"].split(" ")
     # Find and return contact object
     found_contact = cursor_object.execute(
@@ -43,15 +47,22 @@ def get_update_answers(person):
         inquirer.Text("company", message="Company", default=person[2]),
         inquirer.Text("phone", message="Phone", default=person[3],
                       validate=phone_validation),
-        inquirer.Text("email", message="Email", default=person[4]),
+        inquirer.Text("email", message="Email", default=person[4],
+                      validate=email_validation),
         inquirer.Text("address", message="Address", default=person[5]),
         inquirer.Text("notes", message="Notes", default=person[6]),
     ]
     answers = inquirer.prompt(update_questions)
     return answers
 
-def phone_validation(answer, current):
+def phone_validation(_, current):
     """Validate entered phone numbers"""
-    if not re.match("[\d+]?[\d ]+\d", current):
+    if not re.match(r"[\d+]?[\d ]+\d", current):
         raise errors.ValidationError("", reason="Invalid phone number")
+    return True
+
+def email_validation(_, current):
+    """Validate entered emails"""
+    if not re.match(r"^[\w\d.-]+@[\w\d]+\.+[\w]+[\.\w]*", current):
+        raise errors.ValidationError("", reason="Invalid email")
     return True

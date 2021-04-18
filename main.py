@@ -4,7 +4,8 @@ import sqlite3
 import sys
 import inspect
 import inquirer
-from helpers import get_update_answers, select_contact, phone_validation
+from helpers import (get_update_answers, select_contact, phone_validation,
+                     email_validation)
 
 # Connect to database
 DATABASE = "contacts.db"
@@ -45,13 +46,13 @@ def create_contact():
     """Guide user through creating a contact"""
     print("Create Contact\nTip: press RETURN to skip field.")
     questions = [
-        inquirer.Text("first", message="First Name"),
-        inquirer.Text("last", message="Last Name"),
-        inquirer.Text("company", message="Company"),
-        inquirer.Text("phone", message="Phone", validate=phone_validation),
-        inquirer.Text("email", message="Email"),
-        inquirer.Text("address", message="Address"),
-        inquirer.Text("notes", message="Notes"),
+        inquirer.Text("first",   message ="First Name"),
+        inquirer.Text("last",    message ="Last Name"),
+        inquirer.Text("company", message ="Company"),
+        inquirer.Text("phone",   message ="Phone", validate=phone_validation),
+        inquirer.Text("email",   message ="Email", validate=email_validation),
+        inquirer.Text("address", message ="Address"),
+        inquirer.Text("notes",   message ="Notes"),
     ]
     # Get user input
     answers = inquirer.prompt(questions)
@@ -78,7 +79,7 @@ def create_contact():
 def update_contact():
     """Update an existing contact"""
     # Select contact, format name for sqlite query
-    found_contact = select_contact(CURSOR)
+    found_contact  = select_contact(CURSOR)
     f_name, l_name = found_contact[0], found_contact[1]
     update_answers = get_update_answers(found_contact)
 
@@ -103,7 +104,14 @@ def update_contact():
 def remove_contact():
     """Remove an existing contact"""
     contact_to_remove = select_contact(CURSOR)
-    f_name, l_name = contact_to_remove[0], contact_to_remove[1]
+
+    # If there are no contacts in database, select_contact will catch this error
+    try:
+        f_name, l_name = contact_to_remove[0], contact_to_remove[1]
+    except TypeError:
+        return
+
+    # Delete
     CURSOR.execute("""DELETE FROM contacts WHERE
                    (first_name = ? and last_name  = ?)""", (f_name, l_name))
     CONNECTION.commit()
@@ -112,8 +120,8 @@ def remove_contact():
 
 def print_contact(person):
     """Format and display contact information"""
-    # cleandoc to remove unnecessary spaces from string
     try:
+        # cleandoc to remove unnecessary spaces from string
         print(inspect.cleandoc(f"""
               Name    : {person[0]} {person[1]}
               Company : {person[2]}
