@@ -1,5 +1,6 @@
 """Helper functions for main.py"""
 import re
+import sqlite3
 import inquirer
 from inquirer import errors
 
@@ -7,9 +8,16 @@ from inquirer import errors
 def select_contact(cursor_object):
     """Ask user to select a contact via inquirer"""
     all_contacts = []
+
     # Fetch all contacts
-    contacts_object = cursor_object.execute("""SELECT first_name, last_name FROM
-                                            contacts""").fetchall()
+    try:
+        contacts_object = cursor_object.execute("""SELECT first_name, last_name
+                                                FROM contacts""").fetchall()
+    except sqlite3.OperationalError as op_err:
+        print(f"Database has not been initialized! ({op_err})"
+              "\nUse command 'python db.py' to initialize.")
+        return None
+
     # If contacts db is empty, return
     if contacts_object == []:
         print("There are no contacts in the database.\n"
@@ -29,6 +37,7 @@ def select_contact(cursor_object):
 
     answer = inquirer.prompt(questions)
     first_and_last_name = answer["contact"].split(" ")
+
     # Find and return contact object
     found_contact = cursor_object.execute(
         """SELECT first_name, last_name, company, phone_number, email, address,
@@ -57,17 +66,17 @@ def get_update_answers(person):
 
 def phone_validation(_, current):
     """Validate entered phone numbers"""
-    # If user leaves is blank, ignore
+    # If user leaves it blank, ignore
     if current == "":
         return True
-    if not re.match(r"[\d+]?[\d ]+\d", current):
+    if not re.match(r"[\d+\(\)]*[\d ]+\d", current):
         raise errors.ValidationError("", reason="Invalid phone number")
     return True
 
 
 def email_validation(_, current):
     """Validate entered emails"""
-    # If user leaves is blank, ignore
+    # If user leaves it blank, ignore
     if current == "":
         return True
     if not re.match(r"^[\w\d.-]+@[\w\d]+\.+[\w]+[\.\w]*", current):
