@@ -64,10 +64,12 @@ def create_contact():
 
     # Create contact
     try:
-        CURSOR.execute("INSERT INTO contacts VALUES (?, ?, ?, ?, ?, ?, ?)",
-                       (answers["first"], answers["last"], answers["company"],
-                        answers["phone"], answers["email"],
-                        answers["address"], answers["notes"]))
+        sql = ("INSERT INTO contacts "
+               "VALUES (?, ?, ?, ?, ?, ?, ?)")
+        CURSOR.execute(sql, (answers["first"], answers["last"],
+                             answers["company"], answers["phone"],
+                             answers["email"], answers["address"],
+                             answers["notes"]))
     except sqlite3.OperationalError as op_err:
         print(f"Error: {op_err}\nUse the command 'python db.py' to create a "
               "database")
@@ -84,17 +86,14 @@ def update_contact():
     update_answers = get_update_answers(found_contact)
 
     # Update contact
-    CURSOR.execute(
-        """UPDATE contacts SET first_name = ?, last_name = ?,
-        company = ?, phone_number = ?, email = ?, address = ?, notes = ?
-        WHERE (first_name = ? and last_name = ?)""", (update_answers["first"],
-                                                      update_answers["last"],
-                                                      update_answers["company"],
-                                                      update_answers["phone"],
-                                                      update_answers["email"],
-                                                      update_answers["address"],
-                                                      update_answers["notes"],
-                                                      f_name, l_name))
+    sql = ("UPDATE contacts "
+           "SET first_name = ?, last_name = ?, company = ?, phone_number = ?, "
+           "email = ?, address = ?, notes = ? "
+           "WHERE (first_name = ? and last_name = ?)")
+    CURSOR.execute(sql, (update_answers["first"], update_answers["last"],
+                         update_answers["company"], update_answers["phone"],
+                         update_answers["email"], update_answers["address"],
+                         update_answers["notes"], f_name, l_name))
 
     CONNECTION.commit()
     print(f"Contact {update_answers['first']} {update_answers['last']} "
@@ -112,8 +111,9 @@ def remove_contact():
         return
 
     # Delete
-    CURSOR.execute("""DELETE FROM contacts WHERE
-                   (first_name = ? and last_name  = ?)""", (f_name, l_name))
+    sql = ("DELETE FROM contacts "
+           "WHERE (first_name = ? and last_name = ?)")
+    CURSOR.execute(sql, (f_name, l_name))
     CONNECTION.commit()
     print("Removed contact")
 
